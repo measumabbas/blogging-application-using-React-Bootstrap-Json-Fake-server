@@ -14,7 +14,7 @@ const Blogs = ({ title, catagory, description, id, imageUrl, excerpt, handleDele
 
               <p className="card-text text-center">{excerpt(description)}</p>
               
-              <span><Link to={`/blog/${id}`}>See more</Link></span>
+              <p><Link to={`/blog/${id}`}>See more</Link></p>
         
             <Badge children={catagory}/>
           </div>
