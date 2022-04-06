@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 // oha7na0l
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 
 const initiatState = {
@@ -18,69 +18,104 @@ const AddEditBlog = () => {
 
 
     const navigate = useNavigate();
+
+    const { id } = useParams()
+
+    useEffect(() => {
+        if (id) {
+            setEditMode(true);
+            getSingleBlog(id);
+        }
+        else {
+            setEditMode(false);
+            setFormValue({ ...initiatState })
+        }
+    }, [id]);
+
+    const getSingleBlog = async (id) => {
+        const singleBlog = await axios.get(`http://localhost:500/blogs/${id}`);
+        setFormValue({ ...singleBlog.data })
+    }
+
     const [formValue, setFormValue] = useState(initiatState);
+    const [editMode, setEditMode] = useState(false);
     const [catagoryErrMsg, setCatagoryErrMsg] = useState(null);
 
     const { title, description, catagory, imageUrl } = formValue;
 
-    const getDate=()=>{
+    const getDate = () => {
         let today = new Date();
-        let dd = String(today.getDate()).padStart(2,'0');
-        let mm = String(today.getMonth()+1).padStart(2,'0')
+        let dd = String(today.getDate()).padStart(2, '0');
+        let mm = String(today.getMonth() + 1).padStart(2, '0')
         let yy = today.getFullYear();
 
         today = mm + '/' + dd + '/' + yy;
         return today;
     }
 
-    const handleSubmit = async (e) => { 
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        console.log('submit')
-        if(title && description && catagory && imageUrl){
-            const currentDate = getDate();
-            const updatedBlogData = {...formValue,date:currentDate};
+        if (title && description && catagory && imageUrl) {
 
-            const response = await axios.post('http://localhost:500/blogs',updatedBlogData);
-            if(response.status === 201){
-                toast.success('Blog Created Successfully')
+            if(!editMode){
+
+                const currentDate = getDate();
+                const updatedBlogData = { ...formValue, date: currentDate };
+    
+                const response = await axios.post('http://localhost:500/blogs', updatedBlogData);
+                if (response.status === 201) {
+                    toast.success('Blog Created Successfully')
+                }
+                else {
+                    toast.error('Something Went Wrong')
+                }
             }
             else{
-                toast.error('Something Went Wrong')
+                const response = await axios.put(`http://localhost:500/blogs/${id}`, formValue);
+                if (response.status === 200) {
+                    toast.success('Blog Updated Successfully')
+                }
+                else {
+                    toast.error('Something Went Wrong')
+                }
             }
 
-            setFormValue({title:'',description:'',catagory:'',imageUrl:''});
+            setFormValue({ title: '', description: '', catagory: '', imageUrl: '' });
             navigate('/')
         }
     }
-    const onInputChange = (e) => { 
-        let {name,value} = e.target;
-        setFormValue({...formValue,[name]:value})
+    const onInputChange = (e) => {
+        let { name, value } = e.target;
+        setFormValue({ ...formValue, [name]: value })
     }
     const onFileUpload = (file) => {
         const formData = new FormData();
-        formData.append('file',file);
-        formData.append('upload_preset','oha7na0l');
+        formData.append('file', file);
+        formData.append('upload_preset', 'oha7na0l');
         axios
             .post("http://api.cloudinary.com/v1_1/drkf8to4g/image/upload", formData)
-            .then((resp)=>{
+            .then((resp) => {
                 toast.info('Image uploaded successfully');
-                setFormValue({...formValue,imageUrl:resp.data.url})
-            }).catch((err)=>{
+                setFormValue({ ...formValue, imageUrl: resp.data.url })
+            }).catch((err) => {
                 toast.error('Something Went wrong')
             })
-     }
-    const onCatagoryChange = (e) => { 
-        setFormValue({...formValue,catagory:e.target.value})
+    }
+    const onCatagoryChange = (e) => {
+        setFormValue({ ...formValue, catagory: e.target.value })
     }
     return (
 
         <div className="form">
-            <h3>Add Blog</h3>
+            <h3>{editMode ? 'Update Blog' : 'Add Blog'}</h3>
             <form onSubmit={handleSubmit}>
                 <input type="text" className="form-control" id="exampleInputEmail1" value={title} name='title' aria-describedby="emailHelp" placeholder='title' onChange={onInputChange} />
                 <textarea className="form-control" id="exampleFormControlTextarea1" rows="3" placeholder='description' onChange={onInputChange} value={description} name='description' ></textarea>
-                <input className="form-control" type="file" id="formFile" onChange={(e) => onFileUpload(e.target.files[0])}></input>
+                {!editMode && (
+
+                    <input className="form-control" type="file" id="formFile" onChange={(e) => onFileUpload(e.target.files[0])}></input>
+                )}
 
                 <select className="form-select" aria-label="Default select example" onChange={onCatagoryChange} value={catagory}>
                     <option>Please Select Catagory</option>
@@ -89,9 +124,9 @@ const AddEditBlog = () => {
                     ))}
                 </select>
 
-                <div className="d-flex justify-content-center"> 
-                    <input type="submit" className="btn btn-primary" value='Create Blog'/>
-                    <button type="button" className="btn btn-danger" onClick={()=> navigate('/')}>Go Back</button>
+                <div className="d-flex justify-content-center">
+                    <input type="submit" className="btn btn-primary" value={editMode ? 'Update Blog' : 'Add Blog'} />
+                    <button type="button" className="btn btn-danger" onClick={() => navigate('/')}>Go Back</button>
                 </div>
 
             </form>
