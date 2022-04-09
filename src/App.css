@@ -52,3 +52,31 @@ form{
     top: 10px;
     left: 10px;
 }
+
+.search-form{
+    margin:auto;
+    padding: 15px;
+    max-width: 550px;
+    align-content: center;
+    /* border: 2px solid green; */
+    /* display: flex; */
+}
+
+.search-btn{
+    display: inline;
+    /* float: right; */
+    width: 100px;
+    position: absolute;
+    right: -110px;
+
+}
+input.form-control{
+    display: inline;
+    width: 30vw;
+}
+
+form.d-flex{
+    /* border: 1px solid red; */
+    width: 30vw;
+    position: relative;
+}
